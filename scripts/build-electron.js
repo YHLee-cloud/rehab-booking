@@ -22,8 +22,21 @@ execSync('npm install', { cwd: ELECTRON_DIR, stdio: 'inherit' });
 
 const shouldPublish = process.argv.includes('--publish');
 if (shouldPublish) {
-  console.log('開始打包並發布到 GitHub Releases（需要環境變數 GH_TOKEN）...');
-  execSync('npm run dist:publish', { cwd: ELECTRON_DIR, stdio: 'inherit' });
+  // 權杖只從這個沒有進版本控制的本機檔案讀取，絕對不要印出來或寫進任何 log
+  const tokenFile = path.join(ROOT, '.gh-token');
+  if (!fs.existsSync(tokenFile)) {
+    console.error(
+      `找不到 ${tokenFile}\n請先在終端機執行（把 YOUR_TOKEN 換成你在 GitHub 產生的 Personal Access Token）：\n\n  echo "YOUR_TOKEN" > "${tokenFile}"\n`
+    );
+    process.exit(1);
+  }
+  const token = fs.readFileSync(tokenFile, 'utf8').trim();
+  if (!token) {
+    console.error(`${tokenFile} 是空的，請確認內容有貼上正確的權杖`);
+    process.exit(1);
+  }
+  console.log('開始打包並發布到 GitHub Releases...');
+  execSync('npm run dist:publish', { cwd: ELECTRON_DIR, stdio: 'inherit', env: { ...process.env, GH_TOKEN: token } });
   console.log('完成！已發布到 GitHub Releases，部署電腦按「檢查更新」就能抓到這個版本。');
 } else {
   console.log('開始打包 Windows 安裝檔...');

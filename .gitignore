@@ -15,3 +15,6 @@ electron/public/
 
 .DS_Store
 *.log
+
+# GitHub 發布用的權杖，只存在本機檔案，不進版本控制、也不要貼進聊天訊息
+.gh-token

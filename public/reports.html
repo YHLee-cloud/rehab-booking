@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>月業績報表 - 復健科自費療程預約系統</title>
+<link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div id="nav-host"></div>
+  <div class="container">
+    <div class="card">
+      <div class="toolbar">
+        <div class="field">
+          <label>年份</label>
+          <input type="number" id="year-input" style="width:100px;" />
+        </div>
+        <div class="field">
+          <label>月份</label>
+          <select id="month-input"></select>
+        </div>
+        <button class="btn secondary" id="load-btn">查詢</button>
+        <div style="flex:1"></div>
+        <button class="btn" id="export-btn">匯出 CSV（可用 Excel 開啟）</button>
+      </div>
+      <div class="stat-row" id="summary-stats"></div>
+    </div>
+
+    <div class="card">
+      <h3>收款與服務金額對照</h3>
+      <p class="hint">療程包是購買當下一次收足，之後每次治療只是扣抵次數。因此「當月實收」與「實際服務金額」是兩種不同角度，兩者都列出供對照。</p>
+      <div id="cashflow-detail"></div>
+    </div>
+
+    <div class="card">
+      <h3>依療程項目彙總</h3>
+      <table class="data-table" id="by-treatment"></table>
+    </div>
+    <div class="card">
+      <h3>依執行人員彙總</h3>
+      <p class="hint">每位執行人員底下依療程項目分開列出，各療程獨立計算人次與金額，最後合計整月總業績</p>
+      <table class="data-table" id="by-therapist"></table>
+    </div>
+    <div class="card">
+      <h3>依開單醫師彙總</h3>
+      <p class="hint">每位開單醫師底下依療程項目分開列出，各療程獨立計算人次與金額，最後合計整月總業績</p>
+      <table class="data-table" id="by-doctor"></table>
+    </div>
+    <div class="card">
+      <h3>完成治療明細</h3>
+      <table class="data-table" id="detail-table">
+        <thead>
+          <tr><th>日期</th><th>時間</th><th>患者</th><th>療程</th><th>執行人員</th><th>開單醫師</th><th>金額</th></tr>
+        </thead>
+        <tbody id="detail-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="/js/common.js"></script>
+  <script src="/js/reports.js"></script>
+</body>
+</html>

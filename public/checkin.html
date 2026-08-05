@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>報到 / 完成治療 - 復健科自費療程預約系統</title>
+<link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div id="nav-host"></div>
+  <div class="container">
+    <div class="card">
+      <div class="toolbar" style="flex-wrap:wrap;">
+        <div class="field">
+          <label>起始日期</label>
+          <input type="date" id="date-start-input" />
+        </div>
+        <div class="field">
+          <label>結束日期</label>
+          <input type="date" id="date-end-input" />
+        </div>
+        <button class="btn secondary" id="today-only-btn" style="align-self:flex-end;">只看今天</button>
+        <button class="btn secondary" id="this-month-btn" style="align-self:flex-end;">本月</button>
+        <div class="field">
+          <label>搜尋患者</label>
+          <input type="text" id="search-input" placeholder="輸入姓名..." />
+        </div>
+        <div class="field">
+          <label>狀態</label>
+          <select id="status-filter">
+            <option value="">全部</option>
+            <option value="BOOKED">未報到</option>
+            <option value="CHECKED_IN">已報到（待完成）</option>
+            <option value="COMPLETED">已完成</option>
+            <option value="NO_SHOW">未到</option>
+            <option value="CANCELLED">已取消</option>
+          </select>
+        </div>
+      </div>
+      <div class="stat-row" id="stats"></div>
+    </div>
+
+    <div class="card">
+      <div id="list-error"></div>
+      <table class="data-table" id="list-table">
+        <thead>
+          <tr>
+            <th>日期</th><th>時間</th><th>患者</th><th>療程</th><th>執行人員</th><th>狀態</th><th>報到時間</th><th>完成時間</th><th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="list-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="/js/common.js"></script>
+  <script src="/js/checkin.js"></script>
+</body>
+</html>

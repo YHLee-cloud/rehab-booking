@@ -1,0 +1,30 @@
+{
+  "name": "rehab-booking",
+  "version": "1.31.0",
+  "private": true,
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "node server/server.js",
+    "backup": "node server/backup.js",
+    "install-windows-service": "node scripts/install-windows-service.js",
+    "uninstall-windows-service": "node scripts/uninstall-windows-service.js",
+    "build:win": "pkg server/server.js --targets node22-win-x64 --output dist/RehabBookingSystem.exe --no-bytecode --public --public-packages \"*\"",
+    "build:electron": "node scripts/build-electron.js",
+    "build:electron:publish": "node scripts/build-electron.js --publish"
+  },
+  "dependencies": {
+    "express": "4.19.2",
+    "selfsigned": "5.5.0"
+  },
+  "optionalDependencies": {
+    "node-windows": "1.0.0-beta.8"
+  },
+  "devDependencies": {
+    "@yao-pkg/pkg": "6.21.0"
+  },
+  "pkg": {
+    "scripts": ["server/**/*.js"],
+    "outputPath": "dist"
+  }
+}

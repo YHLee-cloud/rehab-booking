@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>排程總覽 - 復健科自費療程預約系統</title>
+<link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div id="nav-host"></div>
+  <div class="container">
+    <div class="card">
+      <div class="toolbar">
+        <div class="field">
+          <label>日期</label>
+          <input type="date" id="date-input" />
+        </div>
+        <button class="btn secondary" id="prev-day">← 前一天</button>
+        <button class="btn secondary" id="today-btn">今天</button>
+        <button class="btn secondary" id="next-day">後一天 →</button>
+        <div style="flex:1"></div>
+        <button class="btn warning" id="new-package-btn">＋ 新增療程包</button>
+        <button class="btn" id="new-appt-btn">＋ 新增預約</button>
+      </div>
+      <div class="tabs" id="treatment-tabs"></div>
+      <div class="legend" id="legend"></div>
+    </div>
+
+    <div class="card">
+      <div id="grid-error"></div>
+      <div class="grid-wrap">
+        <table class="schedule" id="schedule-table"></table>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-host"></div>
+
+  <script src="/js/common.js"></script>
+  <script src="/js/schedule.js"></script>
+</body>
+</html>

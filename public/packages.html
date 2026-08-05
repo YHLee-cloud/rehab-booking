@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>療程包 - 復健科自費療程預約系統</title>
+<link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div id="nav-host"></div>
+  <div class="container">
+    <div class="card">
+      <p class="hint" style="margin:0;">查詢各患者的療程包使用狀況。要新增療程包，請到「排程總覽」頁面點「＋ 新增療程包」，建立後可直接接著排定時段。</p>
+    </div>
+
+    <div class="card">
+      <div class="toolbar" style="flex-wrap:wrap;">
+        <div class="field">
+          <label>搜尋患者</label>
+          <input type="text" id="search-input" placeholder="輸入姓名..." />
+        </div>
+        <div class="field">
+          <label>顯示</label>
+          <select id="filter-select">
+            <option value="remaining">僅顯示還有剩餘次數</option>
+            <option value="all">全部（含已用完）</option>
+          </select>
+        </div>
+      </div>
+      <div class="stat-row" id="stats"></div>
+    </div>
+
+    <div class="card">
+      <h3>療程包清單</h3>
+      <div id="list-error"></div>
+      <table class="data-table" id="list-table">
+        <thead>
+          <tr>
+            <th>患者</th><th>療程項目</th><th>購買日期</th><th>總次數</th>
+            <th>已完成</th><th>已排定</th><th>剩餘可約</th><th>總金額</th><th>每次金額</th><th>備註</th><th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="list-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="/js/common.js"></script>
+  <script src="/js/packages.js"></script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+node_modules/
+electron/node_modules/
+.claude/
+
+# 患者真實資料與備份，絕對不能進版本控制（含姓名、電話等個資）
+data/
+
+# 建置產物
+dist/
+electron/dist/
+
+# build-electron.js 會自動從根目錄同步過去，不需要另外進版本控制
+electron/server/
+electron/public/
+
+.DS_Store
+*.log

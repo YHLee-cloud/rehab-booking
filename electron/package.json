@@ -1,0 +1,51 @@
+{
+  "name": "rehab-booking-desktop",
+  "version": "1.31.0",
+  "private": true,
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win --x64",
+    "dist:publish": "electron-builder --win --x64 --publish always"
+  },
+  "dependencies": {
+    "express": "4.19.2",
+    "electron-updater": "6.3.9"
+  },
+  "devDependencies": {
+    "electron": "31.7.7",
+    "electron-builder": "24.13.3"
+  },
+  "build": {
+    "appId": "tw.clinic.rehabbooking",
+    "productName": "復健科自費療程預約系統",
+    "asar": true,
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "package.json",
+      "server/**/*",
+      "public/**/*",
+      "build/icon.png",
+      "build/icon.ico"
+    ],
+    "win": {
+      "target": ["nsis"],
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "REPLACE_WITH_GITHUB_USERNAME",
+      "repo": "REPLACE_WITH_REPO_NAME"
+    }
+  }
+}

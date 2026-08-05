@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>內部維護 - 復健科自費療程預約系統</title>
+<link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div id="nav-host"></div>
+  <div class="container">
+    <div class="card">
+      <div class="tabs" id="admin-tabs">
+        <button class="tab-btn active" data-tab="doctors">開單醫師</button>
+        <button class="tab-btn" data-tab="therapists">執行人員</button>
+        <button class="tab-btn" data-tab="treatments">自費療程項目</button>
+        <button class="tab-btn" data-tab="patients">患者管理</button>
+        <button class="tab-btn" data-tab="backups">備份與復原</button>
+        <button class="tab-btn" data-tab="account">帳號設定</button>
+        <button class="tab-btn" data-tab="version">版本資訊</button>
+      </div>
+    </div>
+
+    <div class="card" id="panel-doctors">
+      <h3>開單醫師名單</h3>
+      <div class="toolbar">
+        <input type="text" id="new-doctor-name" placeholder="輸入醫師姓名" />
+        <button class="btn" id="add-doctor-btn">＋ 新增醫師</button>
+      </div>
+      <table class="data-table"><thead><tr><th>姓名</th><th>狀態</th><th>操作</th></tr></thead><tbody id="doctors-body"></tbody></table>
+    </div>
+
+    <div class="card" id="panel-therapists" style="display:none;">
+      <h3>執行人員名單</h3>
+      <div class="toolbar">
+        <input type="text" id="new-therapist-name" placeholder="輸入人員姓名" />
+        <button class="btn" id="add-therapist-btn">＋ 新增人員</button>
+      </div>
+      <table class="data-table"><thead><tr><th>姓名</th><th>狀態</th><th>操作</th></tr></thead><tbody id="therapists-body"></tbody></table>
+    </div>
+
+    <div class="card" id="panel-treatments" style="display:none;">
+      <h3>自費療程項目</h3>
+      <div class="toolbar" style="flex-wrap:wrap;">
+        <input type="text" id="new-tt-name" placeholder="療程名稱" style="width:160px;" />
+        <input type="text" id="new-tt-code" placeholder="代碼 (如 SIS)" style="width:100px;" />
+        <input type="number" id="new-tt-price" placeholder="價格" style="width:100px;" />
+        <input type="number" id="new-tt-duration" placeholder="時長(分鐘)" style="width:110px;" />
+        <select id="new-tt-capacity" title="同一個時段最多可同時進行幾個此療程">
+          <option value="1">同時段 1 個</option>
+          <option value="2">同時段 2 個</option>
+          <option value="3">同時段 3 個</option>
+        </select>
+        <input type="color" id="new-tt-color" value="#3b82f6" style="width:60px;" />
+        <button class="btn" id="add-tt-btn">＋ 新增療程</button>
+        <button class="btn secondary" id="cancel-tt-edit-btn" style="display:none;">取消編輯</button>
+      </div>
+      <p class="hint">「同時段數量」代表這個療程在同一個時間點最多可以同時進行幾位患者（例如徒手治療有多位人員可同時服務）。設為 2 以上時，排程總覽會自動顯示對應數量的欄位。</p>
+      <table class="data-table">
+        <thead><tr><th>顏色</th><th>療程名稱</th><th>代碼</th><th>價格</th><th>時長(分)</th><th>同時段數量</th><th>狀態</th><th>操作</th></tr></thead>
+        <tbody id="tt-body"></tbody>
+      </table>
+    </div>
+
+    <div class="card" id="panel-patients" style="display:none;">
+      <h3>患者管理</h3>
+      <p class="hint">若因為打錯字等原因，同一位患者被存成好幾筆資料，可以在下面勾選重複的資料進行合併：合併後所有預約與療程包紀錄都會歸到保留的那一筆，其餘重複資料會被刪除。</p>
+      <div class="toolbar">
+        <div class="field" style="flex:1;min-width:200px;margin-bottom:0;">
+          <input type="text" id="patient-search-input" placeholder="輸入姓名或電話搜尋..." />
+        </div>
+      </div>
+      <div id="patient-msg"></div>
+      <table class="data-table">
+        <thead><tr><th></th><th>姓名</th><th>電話</th><th>預約次數</th><th>療程包數</th></tr></thead>
+        <tbody id="patients-body"></tbody>
+      </table>
+      <div class="toolbar" style="margin-top:12px;">
+        <button class="btn warning" id="merge-patients-btn" disabled>合併選取的患者（0）</button>
+      </div>
+    </div>
+
+    <div class="card" id="panel-backups" style="display:none;">
+      <h3>備份與復原</h3>
+      <p class="hint">系統每天會自動備份一次資料庫，最多保留最近 30 份。更新程式前，建議先按「立即備份」留一份最新快照。</p>
+      <div class="toolbar">
+        <button class="btn" id="run-backup-btn">立即備份</button>
+      </div>
+      <div id="backups-msg"></div>
+      <table class="data-table"><thead><tr><th>備份時間</th><th>檔案大小</th><th>操作</th></tr></thead><tbody id="backups-body"></tbody></table>
+    </div>
+
+    <div class="card" id="panel-account" style="display:none;">
+      <h3>修改密碼</h3>
+      <div id="account-msg"></div>
+      <div class="form-grid" style="max-width:400px;">
+        <div class="field full">
+          <label>舊密碼</label>
+          <input type="password" id="old-password" />
+        </div>
+        <div class="field full">
+          <label>新密碼</label>
+          <input type="password" id="new-password" />
+        </div>
+      </div>
+      <button class="btn" id="change-password-btn" style="margin-top:12px;">更新密碼</button>
+    </div>
+
+    <div class="card" id="panel-version" style="display:none;">
+      <h3>目前版本：v1.31</h3>
+
+      <h4>自動更新</h4>
+      <div id="updater-section">
+        <p class="hint">載入中...</p>
+      </div>
+
+      <h4>區域網路存取</h4>
+      <p class="hint">若同一個 Wi-Fi / 網路內還有其他電腦想使用「同一份資料」，不需要另外同步，直接在那台電腦開啟瀏覽器輸入下面的網址即可（兩邊看到的是同一份即時資料）：</p>
+      <div id="network-info"></div>
+
+      <h4>現有功能</h4>
+      <ul>
+        <li>視覺化排程：三種自費療程分頁切換，時刻表依療程時長自動切分可預約時段，已預約時段直接顯示患者姓名與執行人員</li>
+        <li>可設定各療程「同時段數量」（1~3）：例如徒手治療可同時服務多位患者，排程畫面會自動顯示對應數量的欄位，額滿才擋下預約</li>
+        <li>報到 / 完成治療管理：可標記報到、完成治療、未到、取消，可直接刪除錯誤資料，並支援切換單日或指定日期區間檢視、核對多日資料</li>
+        <li>預約完成後仍可修改執行人員或開單醫師，不需要刪除重建</li>
+        <li>月業績報表：依療程項目彙總，並依執行人員 / 開單醫師分別列出各自的療程項目明細與小計，一鍵匯出 CSV</li>
+        <li>內部維護：開單醫師、執行人員、自費療程項目管理（新增、編輯、停用、啟用、永久刪除）</li>
+        <li>患者管理：可搜尋患者並勾選重複資料進行合併，因打錯字等原因存成多筆的同一位患者，合併後預約與療程包紀錄會全部歸到保留的那一筆</li>
+        <li>備份與復原：每日自動備份資料庫，可一鍵手動備份、或還原到指定的備份時間點</li>
+        <li>特殊優惠設定：SIS 首次體驗價（每位患者限用一次）</li>
+        <li>療程包：患者可一次購買多次療程，每次「完成治療」自動扣抵一次，剩餘可約次數即時反映；排程總覽可直接建立療程包並接續排定多次時段，療程包頁面則專供查詢使用</li>
+        <li>月業績報表區分「實際服務金額」（療程包分攤到每次治療）與「當月實收」（購買當下一次收足的現金流），兩種角度分別統計、對照</li>
+        <li>同一位患者可一次預約多個時段（可跨不同日期），可設定「統一時間」一次套用到全部時段，共用同一份患者/執行人員資料，不需重複輸入</li>
+        <li>預約時間欄位僅列出診所營業時段內、依療程時長切好的有效時間點，避免手動輸入打錯或選到營業時間外</li>
+        <li>同區網內多台電腦可共用同一份即時資料，不需要另外同步</li>
+        <li>可依需求選擇部署方式：雲端遠端存取、診所內背景服務、或 Windows 桌面應用程式</li>
+      </ul>
+
+      <h4>更新紀錄</h4>
+      <table class="data-table">
+        <thead><tr><th>版本</th><th>日期</th><th>內容</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>v1.31</td>
+            <td>2026-08-05</td>
+            <td>
+              <ul style="margin:0;padding-left:18px;">
+                <li>新增「患者管理」（內部維護 → 患者管理）：可搜尋患者並勾選重複資料進行合併，解決打錯字等原因把同一位患者存成多筆的問題</li>
+                <li>合併時可選擇要保留哪一筆，其餘資料的預約、療程包會全部轉移過去，重複資料則刪除；保留的一筆若沒留電話會自動從被合併的資料補上</li>
+              </ul>
+            </td>
+          </tr>
+          <tr>
+            <td>v1.3</td>
+            <td>2026-08-04</td>
+            <td>
+              <ul style="margin:0;padding-left:18px;">
+                <li>新增「療程包」功能：患者可一次購買多次療程，每次「完成治療」自動扣抵一次，剩餘可約次數即時反映在療程包查詢頁</li>
+                <li>排程總覽新增「＋ 新增療程包」按鈕，建立完成後可直接接續排定多次時段；療程包頁面簡化為僅供查詢，新增一律從排程總覽操作</li>
+                <li>月業績報表同步支援療程包，區分「實際服務金額」（分攤到每次治療）與「當月實收」（購買當下一次收足）兩種角度</li>
+                <li>修正療程包刪除按鈕沒有反應的問題：改為只有已有「已完成」治療紀錄才擋下刪除，尚未完成的預約會隨療程包一併清除</li>
+                <li>多時段預約新增「統一時間」：可一次將同一時間套用到所有時段，之後新增的時段也會自動帶入，仍可個別調整</li>
+                <li>預約時間欄位改為下拉選單，只列出診所營業時段內的有效時間點，避免手動輸入打錯或選到營業時間外</li>
+              </ul>
+            </td>
+          </tr>
+          <tr>
+            <td>v1.2</td>
+            <td>2026-07-28</td>
+            <td>
+              <ul style="margin:0;padding-left:18px;">
+                <li>新增各療程「同時段數量」設定（1~3），排程總覽會自動顯示對應數量的欄位並額滿才擋下預約，例如徒手治療可同時服務多位患者</li>
+                <li>修正排程總覽表頭定位錯誤導致蓋住第一個時段的問題</li>
+                <li>修正預約取消後，該時段在排程總覽仍無法重新安插病人的問題</li>
+                <li>新增：預約完成後仍可修改執行人員或開單醫師，不需要刪除重建；同時修正開單醫師無法清空回「未指定」的問題</li>
+                <li>「報到 / 完成治療」頁面改成可切換單日或指定日期區間檢視，方便核對多日資料，並新增日期欄位</li>
+              </ul>
+            </td>
+          </tr>
+          <tr>
+            <td>v1.15</td>
+            <td>2026-07-24</td>
+            <td>
+              <ul style="margin:0;padding-left:18px;">
+                <li>「執行治療師」全面更名為「執行人員」（畫面文字、錯誤訊息、報表欄位、文件），因為實際執行治療的不一定是治療師</li>
+                <li>月業績報表「依執行人員彙總」改成每人底下依療程項目分開統計人次與金額，最後列出小計，取代原本混在一起的單一總數，一眼就能看出每個人的業績來源</li>
+                <li>「依開單醫師彙總」套用同樣的分組邏輯，也依療程項目分開列出</li>
+                <li>CSV 匯出同步更新為分組格式</li>
+              </ul>
+            </td>
+          </tr>
+          <tr>
+            <td>v1.1</td>
+            <td>2026-07-23</td>
+            <td>
+              <ul style="margin:0;padding-left:18px;">
+                <li>新增「區域網路存取」：同一個區網內兩台電腦可共用同一份即時資料，不需要另外同步（內部維護 → 版本資訊可查看連線網址）</li>
+                <li>新增「同一位患者一次預約多個時段」，可跨不同日期，共用同一份患者/執行人員資料，不需重複輸入</li>
+                <li>移除徒手治療原本的「連續預約兩個時段」功能（已被上面的多時段預約取代，功能重複）</li>
+                <li>修正桌面版第一次開啟視窗時偶爾無法在欄位輸入文字的問題</li>
+                <li>更換應用程式圖示</li>
+              </ul>
+            </td>
+          </tr>
+          <tr>
+            <td>v1.0</td>
+            <td>2026-07-22</td>
+            <td>首次發布</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="modal-host"></div>
+
+  <script src="/js/common.js"></script>
+  <script src="/js/admin.js"></script>
+</body>
+</html>

@@ -45,7 +45,8 @@
     "publish": {
       "provider": "github",
       "owner": "YHLee-cloud",
-      "repo": "rehab-booking"
+      "repo": "rehab-booking",
+      "releaseType": "release"
     }
   }
 }

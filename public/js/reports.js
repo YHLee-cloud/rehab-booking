@@ -47,7 +47,7 @@ async function load() {
   ttNames.sort((a, b) => (cf.byTreatment[b]?.totalReceived || 0) - (cf.byTreatment[a]?.totalReceived || 0));
   document.getElementById('cashflow-detail').innerHTML = `
     <table class="data-table">
-      <thead><tr><th>療程項目</th><th>已收費筆數</th><th>已收費金額</th><th>已執行人次</th><th>已執行金額</th></tr></thead>
+      <thead><tr><th>療程項目</th><th>已收費次數</th><th>已收費金額</th><th>已執行人次</th><th>已執行金額</th></tr></thead>
       <tbody>
         ${
           ttNames.length === 0

@@ -73,6 +73,8 @@ function buildMonthlyReport(db, year, month) {
   const packageSalesRevenue = packageSales.reduce((sum, p) => sum + (p.totalPrice || 0), 0);
   const walkInRevenue = completed.filter((a) => !a.packageId).reduce((sum, a) => sum + (a.price || 0), 0);
 
+  // billedCount 用「次數」為單位，療程包用購買的總次數計算（而不是1包算1筆），
+  // 才能跟下面「已執行人次」單位一致、可以互相對照
   const cashFlowByTreatment = {}; // { [療程]: { billedCount, totalReceived } }
   function ensureCashFlowRow(ttName) {
     cashFlowByTreatment[ttName] = cashFlowByTreatment[ttName] || { billedCount: 0, totalReceived: 0 };
@@ -81,7 +83,7 @@ function buildMonthlyReport(db, year, month) {
   packageSales.forEach((p) => {
     const tt = db.treatmentTypes.find((t) => t.id === p.treatmentTypeId);
     const row = ensureCashFlowRow(tt ? tt.name : '未知療程');
-    row.billedCount += 1;
+    row.billedCount += p.totalSessions || 0;
     row.totalReceived += p.totalPrice || 0;
   });
   completed
@@ -126,7 +128,7 @@ router.get('/monthly/export.csv', requireAuth, (req, res) => {
   }
   rows.push([]);
   rows.push(['彙總 - 已收費 / 已執行（依療程項目分開列出）']);
-  rows.push(['療程項目', '已收費筆數', '已收費金額', '已執行人次', '已執行金額']);
+  rows.push(['療程項目', '已收費次數', '已收費金額', '已執行人次', '已執行金額']);
   const ttNames = new Set([...Object.keys(report.byTreatment), ...Object.keys(report.cashFlow.byTreatment)]);
   for (const name of ttNames) {
     const billed = report.cashFlow.byTreatment[name] || { billedCount: 0, totalReceived: 0 };

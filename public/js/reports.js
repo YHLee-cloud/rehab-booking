@@ -34,36 +34,39 @@ async function load() {
   const month = document.getElementById('month-input').value;
   const report = await api(`/reports/monthly?year=${year}&month=${month}`);
 
-  const cf = report.cashFlow || { totalReceived: 0, packageSalesRevenue: 0, packageSalesCount: 0, walkInRevenue: 0, packageSessionRevenue: 0 };
+  const cf = report.cashFlow || { totalReceived: 0, byTreatment: {} };
   document.getElementById('summary-stats').innerHTML = `
-    <div class="stat-box"><div class="num">${fmtMoney(report.totalRevenue)}</div><div class="label">實際服務金額（療程包已分攤）</div></div>
-    <div class="stat-box"><div class="num">${report.totalCount}</div><div class="label">完成治療人次</div></div>
-    <div class="stat-box"><div class="num">${fmtMoney(cf.totalReceived)}</div><div class="label">當月實收（實際收到的錢）</div></div>
+    <div class="stat-box"><div class="num">${fmtMoney(cf.totalReceived)}</div><div class="label">已收費金額</div></div>
+    <div class="stat-box"><div class="num">${report.totalCount}</div><div class="label">已執行人次</div></div>
+    <div class="stat-box"><div class="num">${fmtMoney(report.totalRevenue)}</div><div class="label">已執行金額</div></div>
   `;
-  const cfByTreatment = Object.entries(cf.byTreatment || {}).sort((a, b) => b[1].totalReceived - a[1].totalReceived);
+
+  // 已收費（實際收到的錢）跟已執行（完成的治療服務量）分開統計，
+  // 療程包購買當下就收費，但可能之後才慢慢執行完，兩個數字本來就不會完全對齊
+  const ttNames = Array.from(new Set([...Object.keys(report.byTreatment), ...Object.keys(cf.byTreatment || {})]));
+  ttNames.sort((a, b) => (cf.byTreatment[b]?.totalReceived || 0) - (cf.byTreatment[a]?.totalReceived || 0));
   document.getElementById('cashflow-detail').innerHTML = `
     <table class="data-table">
-      <thead><tr><th>療程項目</th><th>療程包銷售</th><th>單次收費治療</th><th>小計</th></tr></thead>
+      <thead><tr><th>療程項目</th><th>已收費筆數</th><th>已收費金額</th><th>已執行人次</th><th>已執行金額</th></tr></thead>
       <tbody>
         ${
-          cfByTreatment.length === 0
-            ? `<tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:12px;">尚無資料</td></tr>`
-            : cfByTreatment
-                .map(
-                  ([name, v]) =>
-                    `<tr><td>${escapeHtml(name)}</td><td>${fmtMoney(v.packageSalesRevenue)}</td><td>${fmtMoney(v.walkInRevenue)}</td><td>${fmtMoney(v.totalReceived)}</td></tr>`
-                )
+          ttNames.length === 0
+            ? `<tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:12px;">尚無資料</td></tr>`
+            : ttNames
+                .map((name) => {
+                  const billed = cf.byTreatment[name] || { billedCount: 0, totalReceived: 0 };
+                  const done = report.byTreatment[name] || { count: 0, revenue: 0 };
+                  return `<tr><td>${escapeHtml(name)}</td><td>${billed.billedCount}</td><td>${fmtMoney(billed.totalReceived)}</td><td>${done.count}</td><td>${fmtMoney(done.revenue)}</td></tr>`;
+                })
                 .join('')
         }
         <tr style="background:#f8fafc;font-weight:700;">
-          <td>合計</td><td>${fmtMoney(cf.packageSalesRevenue)}</td><td>${fmtMoney(cf.walkInRevenue)}</td><td>${fmtMoney(cf.totalReceived)}</td>
+          <td>合計</td><td>-</td><td>${fmtMoney(cf.totalReceived)}</td><td>${report.totalCount}</td><td>${fmtMoney(report.totalRevenue)}</td>
         </tr>
       </tbody>
     </table>
-    <p class="hint" style="margin-top:8px;">療程包銷售＝當月售出 ${cf.packageSalesCount} 筆療程包，購買當下一次收足；單次收費治療＝當月完成、當場收費的治療。這是「當月實收」，跟下方「依療程項目彙總」的實際服務金額（療程包分攤到每次）是兩種不同角度。</p>
   `;
 
-  renderSummaryTable('by-treatment', '療程項目', report.byTreatment);
   renderGroupedTable('by-therapist', '執行人員', report.byTherapist);
   renderGroupedTable('by-doctor', '開單醫師', report.byDoctor);
 
@@ -111,26 +114,6 @@ function renderGroupedTable(elId, groupLabel, dataObj) {
   host.innerHTML = `
     <thead><tr><th>${groupLabel}</th><th>療程項目</th><th>完成人次</th><th>金額小計</th></tr></thead>
     <tbody>${body}</tbody>
-  `;
-}
-
-function renderSummaryTable(elId, colLabel, dataObj) {
-  const entries = Object.entries(dataObj);
-  const host = document.getElementById(elId);
-  if (entries.length === 0) {
-    host.innerHTML = `<tr><td style="color:#94a3b8;padding:12px;">尚無資料</td></tr>`;
-    return;
-  }
-  host.innerHTML = `
-    <thead><tr><th>${colLabel}</th><th>完成人次</th><th>金額小計</th><th>其中：療程包扣抵</th></tr></thead>
-    <tbody>
-      ${entries
-        .map(
-          ([name, v]) =>
-            `<tr><td>${escapeHtml(name)}</td><td>${v.count}</td><td>${fmtMoney(v.revenue)}</td><td>${v.packageCount ? `${fmtMoney(v.packageRevenue)}（${v.packageCount} 人次）` : '-'}</td></tr>`
-        )
-        .join('')}
-    </tbody>
   `;
 }
 

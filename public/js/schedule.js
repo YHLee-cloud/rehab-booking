@@ -466,6 +466,14 @@ async function openBookingModal(prefill) {
                         首次體驗（金額固定 NT$1,000）
                       </label>
                       <span class="hint" id="first-trial-hint" style="display:none;color:var(--danger);">此患者已使用過首次體驗優惠，無法再次使用</span>
+                    </div>
+                    <div class="field">
+                      <label>&nbsp;</label>
+                      <label style="display:flex;align-items:center;gap:6px;font-weight:400;">
+                        <input type="checkbox" id="f-eras" style="width:auto;" />
+                        ERAS優惠價（金額固定 NT$250）
+                      </label>
+                      <span class="hint" id="eras-hint">一位患者一輩子最多 4 次，同一次排程操作最多約 2 次</span>
                     </div>`
                   : ''
               }
@@ -503,6 +511,18 @@ async function openBookingModal(prefill) {
     if (e.target.id === 'modal-backdrop') closeModal();
   });
 
+  // ERAS 優惠：一位患者一輩子最多 4 次，同一次排程操作（多時段表單）最多勾選 2 次。
+  // erasRemaining 由 onPatientChanged() 依患者已使用次數更新，這裡的上限取兩者中較小值。
+  let erasRemaining = 4;
+  function enforceMultiSlotErasLimit() {
+    const boxes = Array.from(document.querySelectorAll('#multi-slot-rows .slot-eras'));
+    const maxAllowed = Math.min(2, erasRemaining);
+    const checkedCount = boxes.filter((b) => b.checked).length;
+    boxes.forEach((b) => {
+      if (!b.checked) b.disabled = checkedCount >= maxAllowed;
+    });
+  }
+
   // 多時段預約：切換單一日期/時間欄位 <-> 可重複新增的時段列表
   // 新增時段時，日期/時間預設帶入第一個時段的值，使用者只需要視需要調整（通常只改日期）
   function addSlotRow(date, time) {
@@ -518,10 +538,23 @@ async function openBookingModal(prefill) {
     row.innerHTML = `
       <input type="date" class="slot-date" value="${d || state.date}" required />
       <select class="slot-time" required>${timeOptions(t)}</select>
+      ${
+        treatmentType.code === 'SIS'
+          ? `<label style="display:flex;align-items:center;gap:4px;font-size:12px;font-weight:400;white-space:nowrap;">
+               <input type="checkbox" class="slot-eras" style="width:auto;" /> ERAS優惠
+             </label>`
+          : ''
+      }
       <button type="button" class="btn danger small remove-slot-row-btn">移除</button>
     `;
     rows.appendChild(row);
-    row.querySelector('.remove-slot-row-btn').addEventListener('click', () => row.remove());
+    row.querySelector('.remove-slot-row-btn').addEventListener('click', () => {
+      row.remove();
+      enforceMultiSlotErasLimit();
+    });
+    const erasBox = row.querySelector('.slot-eras');
+    if (erasBox) erasBox.addEventListener('change', enforceMultiSlotErasLimit);
+    enforceMultiSlotErasLimit();
   }
   document.getElementById('add-slot-row-btn').addEventListener('click', () => addSlotRow());
   document.getElementById('apply-unify-time-btn').addEventListener('click', () => {
@@ -544,6 +577,16 @@ async function openBookingModal(prefill) {
   });
 
   const firstTrialCheckbox = document.getElementById('f-first-trial');
+  const erasCheckbox = document.getElementById('f-eras');
+  // 首次體驗跟 ERAS優惠是兩種不同的特殊價，同一筆預約只能擇一使用
+  if (firstTrialCheckbox && erasCheckbox) {
+    firstTrialCheckbox.addEventListener('change', () => {
+      if (firstTrialCheckbox.checked) erasCheckbox.checked = false;
+    });
+    erasCheckbox.addEventListener('change', () => {
+      if (erasCheckbox.checked) firstTrialCheckbox.checked = false;
+    });
+  }
 
   // 選到既有患者時，查詢他這個療程還有沒有可用的療程包，有的話讓操作人員選擇扣抵
   async function onPatientChanged() {
@@ -562,6 +605,17 @@ async function openBookingModal(prefill) {
       firstTrialCheckbox.disabled = alreadyUsed;
       if (alreadyUsed) firstTrialCheckbox.checked = false;
       document.getElementById('first-trial-hint').style.display = alreadyUsed ? '' : 'none';
+    }
+
+    if (erasCheckbox) {
+      const used = (patient && patient.erasUsedCount) || 0;
+      erasRemaining = Math.max(0, 4 - used);
+      erasCheckbox.disabled = erasRemaining <= 0;
+      if (erasRemaining <= 0) erasCheckbox.checked = false;
+      document.getElementById('eras-hint').textContent = patient
+        ? `此患者已使用 ${used} / 4 次，還可再使用 ${erasRemaining} 次（同一次排程操作最多約 2 次）`
+        : '一位患者一輩子最多 4 次，同一次排程操作最多約 2 次';
+      enforceMultiSlotErasLimit();
     }
 
     const packageField = document.getElementById('package-field');
@@ -606,6 +660,22 @@ async function openBookingModal(prefill) {
       } else if (firstTrialCheckbox) {
         firstTrialCheckbox.disabled = false;
       }
+      if (erasCheckbox) {
+        if (packageSelect.value) {
+          erasCheckbox.checked = false;
+          erasCheckbox.disabled = true;
+        } else {
+          erasCheckbox.disabled = erasRemaining <= 0;
+        }
+      }
+      // 多時段的療程包套用到整批時段，選了療程包後每一列的 ERAS 勾選都要一併停用
+      document.querySelectorAll('#multi-slot-rows .slot-eras').forEach((b) => {
+        if (packageSelect.value) {
+          b.checked = false;
+          b.disabled = true;
+        }
+      });
+      enforceMultiSlotErasLimit();
     };
     packageSelect.onchange = updateHint;
     // 從療程包接續過來時，鎖定選到那個剛建立的療程包
@@ -650,7 +720,11 @@ async function openBookingModal(prefill) {
     if (isMultiSlot) {
       const rows = Array.from(document.getElementById('multi-slot-rows').children);
       const slots = rows
-        .map((row) => ({ date: row.querySelector('.slot-date').value, startTime: row.querySelector('.slot-time').value }))
+        .map((row) => ({
+          date: row.querySelector('.slot-date').value,
+          startTime: row.querySelector('.slot-time').value,
+          eras: row.querySelector('.slot-eras') ? row.querySelector('.slot-eras').checked : false,
+        }))
         .filter((s) => s.date && s.startTime);
       if (slots.length === 0) {
         errorHost.innerHTML = `<div class="error-box">請至少填寫一個時段</div>`;
@@ -690,6 +764,7 @@ async function openBookingModal(prefill) {
       startTime: document.getElementById('f-time').value,
       slotIndex: typeof prefill.slotIndex === 'number' ? prefill.slotIndex : undefined,
       firstTrial: document.getElementById('f-first-trial') ? document.getElementById('f-first-trial').checked : false,
+      eras: document.getElementById('f-eras') ? document.getElementById('f-eras').checked : false,
     };
     try {
       await api('/appointments', { method: 'POST', body: JSON.stringify(payload) });

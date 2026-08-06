@@ -70,7 +70,7 @@ router.get('/', requireAuth, (req, res) => {
 // POST /api/appointments
 router.post('/', requireAuth, (req, res) => {
   const db = load();
-  const { patientId, patientName, patientPhone, doctorId, treatmentTypeId, therapistId, date, startTime, note, firstTrial, slotIndex, packageId } =
+  const { patientId, patientName, patientPhone, doctorId, treatmentTypeId, therapistId, date, startTime, note, firstTrial, eras, slotIndex, packageId } =
     req.body || {};
 
   if (!treatmentTypeId || !therapistId || !date || !startTime) {
@@ -98,6 +98,16 @@ router.post('/', requireAuth, (req, res) => {
     }
   }
 
+  // ERAS 優惠價：SIS 特殊優惠，固定 250 元，一輩子最多 4 次（同一次排程操作最多 2 次由前端把關）
+  if (eras) {
+    if (firstTrial) {
+      return res.status(400).json({ error: 'ERAS優惠與首次體驗優惠不能同時使用，請擇一' });
+    }
+    if ((finalPatient.erasUsedCount || 0) >= 4) {
+      return res.status(400).json({ error: '此患者已使用滿 4 次 ERAS優惠（一輩子上限），無法再次使用' });
+    }
+  }
+
   // 使用療程包時，金額改用療程包的每次分攤價，並檢查次數是否還夠
   let usedPackage = null;
   if (packageId) {
@@ -117,6 +127,9 @@ router.post('/', requireAuth, (req, res) => {
     }
     if (firstTrial) {
       return res.status(400).json({ error: '首次體驗優惠與療程包不能同時使用，請擇一' });
+    }
+    if (eras) {
+      return res.status(400).json({ error: 'ERAS優惠與療程包不能同時使用，請擇一' });
     }
   }
 
@@ -175,8 +188,9 @@ router.post('/', requireAuth, (req, res) => {
     startTime,
     endTime,
     // 療程包的每次金額用購買當下分攤的單價，這樣個人業績報表仍能正確反映實際服務量
-    price: usedPackage ? unitPriceOf(usedPackage) : firstTrial ? 1000 : treatmentType.price,
+    price: usedPackage ? unitPriceOf(usedPackage) : eras ? 250 : firstTrial ? 1000 : treatmentType.price,
     isFirstTrial: !!firstTrial,
+    isEras: !!eras,
     status: 'BOOKED', // BOOKED -> CHECKED_IN -> COMPLETED, or CANCELLED
     checkInAt: null,
     completedAt: null,
@@ -187,6 +201,9 @@ router.post('/', requireAuth, (req, res) => {
   db.appointments.push(appt);
   if (firstTrial) {
     finalPatient.firstTrialUsedTreatmentTypeIds.push(treatmentTypeId);
+  }
+  if (eras) {
+    finalPatient.erasUsedCount = (finalPatient.erasUsedCount || 0) + 1;
   }
   save();
   res.status(201).json(enrich(db, appt));

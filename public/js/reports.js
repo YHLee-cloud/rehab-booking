@@ -40,18 +40,27 @@ async function load() {
     <div class="stat-box"><div class="num">${report.totalCount}</div><div class="label">完成治療人次</div></div>
     <div class="stat-box"><div class="num">${fmtMoney(cf.totalReceived)}</div><div class="label">當月實收（實際收到的錢）</div></div>
   `;
+  const cfByTreatment = Object.entries(cf.byTreatment || {}).sort((a, b) => b[1].totalReceived - a[1].totalReceived);
   document.getElementById('cashflow-detail').innerHTML = `
     <table class="data-table">
-      <thead><tr><th>項目</th><th>金額</th><th>說明</th></tr></thead>
+      <thead><tr><th>療程項目</th><th>療程包銷售</th><th>單次收費治療</th><th>小計</th></tr></thead>
       <tbody>
-        <tr><td>療程包銷售</td><td>${fmtMoney(cf.packageSalesRevenue)}</td><td>當月售出 ${cf.packageSalesCount} 筆療程包，購買當下一次收足</td></tr>
-        <tr><td>單次收費治療</td><td>${fmtMoney(cf.walkInRevenue)}</td><td>當月完成、當場收費的治療</td></tr>
-        <tr style="background:#f8fafc;font-weight:700;"><td>當月實收合計</td><td>${fmtMoney(cf.totalReceived)}</td><td>反映當月實際現金收入</td></tr>
-        <tr><td colspan="3" style="padding-top:14px;"></td></tr>
-        <tr><td>實際服務金額</td><td>${fmtMoney(report.totalRevenue)}</td><td>當月完成的治療，療程包按每次分攤價認列（上方各項業績彙總都用這個基準）</td></tr>
-        <tr><td>　其中：療程包扣抵</td><td>${fmtMoney(cf.packageSessionRevenue)}</td><td>${cf.packageSessionCount} 人次，這部分的錢在購買當月就已收取，不是當月現金收入</td></tr>
+        ${
+          cfByTreatment.length === 0
+            ? `<tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:12px;">尚無資料</td></tr>`
+            : cfByTreatment
+                .map(
+                  ([name, v]) =>
+                    `<tr><td>${escapeHtml(name)}</td><td>${fmtMoney(v.packageSalesRevenue)}</td><td>${fmtMoney(v.walkInRevenue)}</td><td>${fmtMoney(v.totalReceived)}</td></tr>`
+                )
+                .join('')
+        }
+        <tr style="background:#f8fafc;font-weight:700;">
+          <td>合計</td><td>${fmtMoney(cf.packageSalesRevenue)}</td><td>${fmtMoney(cf.walkInRevenue)}</td><td>${fmtMoney(cf.totalReceived)}</td>
+        </tr>
       </tbody>
     </table>
+    <p class="hint" style="margin-top:8px;">療程包銷售＝當月售出 ${cf.packageSalesCount} 筆療程包，購買當下一次收足；單次收費治療＝當月完成、當場收費的治療。這是「當月實收」，跟下方「依療程項目彙總」的實際服務金額（療程包分攤到每次）是兩種不同角度。</p>
   `;
 
   renderSummaryTable('by-treatment', '療程項目', report.byTreatment);
@@ -113,9 +122,14 @@ function renderSummaryTable(elId, colLabel, dataObj) {
     return;
   }
   host.innerHTML = `
-    <thead><tr><th>${colLabel}</th><th>完成人次</th><th>金額小計</th></tr></thead>
+    <thead><tr><th>${colLabel}</th><th>完成人次</th><th>金額小計</th><th>其中：療程包扣抵</th></tr></thead>
     <tbody>
-      ${entries.map(([name, v]) => `<tr><td>${escapeHtml(name)}</td><td>${v.count}</td><td>${fmtMoney(v.revenue)}</td></tr>`).join('')}
+      ${entries
+        .map(
+          ([name, v]) =>
+            `<tr><td>${escapeHtml(name)}</td><td>${v.count}</td><td>${fmtMoney(v.revenue)}</td><td>${v.packageCount ? `${fmtMoney(v.packageRevenue)}（${v.packageCount} 人次）` : '-'}</td></tr>`
+        )
+        .join('')}
     </tbody>
   `;
 }

@@ -1,6 +1,6 @@
 {
   "name": "rehab-booking-desktop",
-  "version": "1.33.0",
+  "version": "1.33.1",
   "private": true,
   "main": "main.js",
   "scripts": {

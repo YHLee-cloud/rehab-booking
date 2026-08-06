@@ -1,5 +1,5 @@
 // 報到 / 完成治療 頁面邏輯
-const state = { me: null, startDate: todayStr(), endDate: todayStr(), appointments: [] };
+const state = { me: null, startDate: todayStr(), endDate: todayStr(), appointments: [], treatmentTypes: [] };
 
 function statusLabel(s) {
   return { BOOKED: '已預約', CHECKED_IN: '已報到', COMPLETED: '已完成', NO_SHOW: '未到', CANCELLED: '已取消' }[s] || s;
@@ -43,7 +43,13 @@ async function init() {
     load();
   });
   document.getElementById('search-input').addEventListener('input', render);
+  document.getElementById('treatment-filter').addEventListener('change', render);
   document.getElementById('status-filter').addEventListener('change', render);
+
+  state.treatmentTypes = await api('/treatment-types');
+  document.getElementById('treatment-filter').innerHTML =
+    '<option value="">全部</option>' +
+    state.treatmentTypes.map((t) => `<option value="${t.id}">${escapeHtml(t.name)}${t.active ? '' : '（已停用）'}</option>`).join('');
 
   await load();
 }
@@ -63,12 +69,14 @@ async function load() {
 
 function render() {
   const q = document.getElementById('search-input').value.trim();
+  const treatmentFilter = document.getElementById('treatment-filter').value;
   const statusFilter = document.getElementById('status-filter').value;
   const isSingleDay = state.startDate === state.endDate;
 
   // 多日檢視時要先依日期排序，同一天內再依時間排序，避免不同天的時段混在一起
   let list = state.appointments.slice().sort((a, b) => (a.date + a.startTime).localeCompare(b.date + b.startTime));
   if (q) list = list.filter((a) => a.patientName.includes(q));
+  if (treatmentFilter) list = list.filter((a) => a.treatmentTypeId === treatmentFilter);
   if (statusFilter) list = list.filter((a) => a.status === statusFilter);
 
   const stats = {

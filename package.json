@@ -1,6 +1,6 @@
 {
   "name": "rehab-booking",
-  "version": "1.33.2",
+  "version": "1.33.3",
   "private": true,
   "main": "server/server.js",
   "scripts": {

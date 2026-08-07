@@ -107,7 +107,7 @@
     </div>
 
     <div class="card" id="panel-version" style="display:none;">
-      <h3>目前版本：v1.33.2</h3>
+      <h3>目前版本：v1.33.3</h3>
 
       <h4>自動更新</h4>
       <div id="updater-section">
@@ -142,6 +142,16 @@
       <table class="data-table">
         <thead><tr><th>版本</th><th>日期</th><th>內容</th></tr></thead>
         <tbody>
+          <tr>
+            <td>v1.33.3</td>
+            <td>2026-08-07</td>
+            <td>
+              <ul style="margin:0;padding-left:18px;">
+                <li>修正重大問題：排程總覽「＋ 新增預約」填好資料後按「確認預約」完全沒反應，無法建立任何新預約（單一時段、多時段都受影響）</li>
+                <li>原因是隱藏的多時段時段列殘留了瀏覽器表單驗證的必填標記，導致整個表單被卡住卻不會顯示任何錯誤訊息</li>
+              </ul>
+            </td>
+          </tr>
           <tr>
             <td>v1.33.2</td>
             <td>2026-08-06</td>

@@ -536,8 +536,8 @@ async function openBookingModal(prefill) {
     row.className = 'toolbar';
     row.style.marginBottom = '6px';
     row.innerHTML = `
-      <input type="date" class="slot-date" value="${d || state.date}" required />
-      <select class="slot-time" required>${timeOptions(t)}</select>
+      <input type="date" class="slot-date" value="${d || state.date}" />
+      <select class="slot-time">${timeOptions(t)}</select>
       ${
         treatmentType.code === 'SIS'
           ? `<label style="display:flex;align-items:center;gap:4px;font-size:12px;font-weight:400;white-space:nowrap;">

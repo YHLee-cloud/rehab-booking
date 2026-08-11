@@ -133,7 +133,7 @@ function render() {
       const id = btn.dataset.id;
       const action = btn.dataset.action;
       if (action === 'delete') {
-        if (!confirm('確定要刪除此筆預約資料嗎？此動作無法復原，將直接從系統移除，不會保留於統計報表中。')) return;
+        if (!(await confirmDialog('確定要刪除此筆預約資料嗎？此動作無法復原，將直接從系統移除，不會保留於統計報表中。'))) return;
       }
       btn.disabled = true;
       try {

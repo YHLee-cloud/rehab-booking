@@ -239,7 +239,7 @@ function openMergeModal() {
   document.getElementById('modal-confirm-merge').addEventListener('click', async () => {
     const keepId = document.querySelector('input[name="keep-patient"]:checked').value;
     const mergeIds = selected.map((p) => p.id).filter((id) => id !== keepId);
-    if (!confirm(`確定要把其餘 ${mergeIds.length} 筆資料合併到「${selected.find((p) => p.id === keepId).name}」嗎？此動作無法復原。`)) return;
+    if (!(await confirmDialog(`確定要把其餘 ${mergeIds.length} 筆資料合併到「${selected.find((p) => p.id === keepId).name}」嗎？此動作無法復原。`))) return;
     const errorHost = document.getElementById('modal-error');
     try {
       const r = await api('/patients/merge', { method: 'POST', body: JSON.stringify({ keepId, mergeIds }) });
@@ -324,7 +324,7 @@ function renderUpdaterSection(status) {
   const installBtn = document.getElementById('install-update-btn');
   if (installBtn) {
     installBtn.addEventListener('click', async () => {
-      if (!confirm('確定要立即重新啟動並安裝更新嗎？請確認目前沒有其他人正在使用系統。')) return;
+      if (!(await confirmDialog('確定要立即重新啟動並安裝更新嗎？請確認目前沒有其他人正在使用系統。'))) return;
       await api('/app-update/install', { method: 'POST' });
     });
   }
@@ -387,7 +387,7 @@ async function runBackupNow() {
 }
 
 async function restoreBackup(filename) {
-  if (!confirm(`確定要復原到這一份備份嗎？\n\n目前的資料會先自動存一份備份再進行復原，但復原後這份備份「當下」之後新增的資料就會消失，請確認時間點正確。`)) return;
+  if (!(await confirmDialog(`確定要復原到這一份備份嗎？\n\n目前的資料會先自動存一份備份再進行復原，但復原後這份備份「當下」之後新增的資料就會消失，請確認時間點正確。`))) return;
   const msg = document.getElementById('backups-msg');
   msg.innerHTML = '';
   try {
@@ -410,7 +410,7 @@ function wireRowActions() {
       try {
         if (action === 'delete') {
           const name = btn.dataset.name || '';
-          if (!confirm(`確定要永久刪除「${name}」嗎？此動作無法復原，過去關聯的預約紀錄將無法再顯示其名稱。`)) return;
+          if (!(await confirmDialog(`確定要永久刪除「${name}」嗎？此動作無法復原，過去關聯的預約紀錄將無法再顯示其名稱。`))) return;
           await api(`${endpoint}/${id}/permanent`, { method: 'DELETE' });
         } else if (action === 'disable') {
           await api(`${endpoint}/${id}`, { method: 'DELETE' });

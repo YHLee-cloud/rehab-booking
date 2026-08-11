@@ -73,7 +73,7 @@ function render() {
 
   body.querySelectorAll('button[data-delete]').forEach((btn) => {
     btn.addEventListener('click', async () => {
-      if (!confirm(`確定要刪除「${btn.dataset.name}」的這個療程包嗎？\n\n此動作無法復原，若這個療程包底下有還沒完成的預約（已預約/已報到/未到/已取消），會一併被刪除。`)) return;
+      if (!(await confirmDialog(`確定要刪除「${btn.dataset.name}」的這個療程包嗎？\n\n此動作無法復原，若這個療程包底下有還沒完成的預約（已預約/已報到/未到/已取消），會一併被刪除。`))) return;
       btn.disabled = true;
       const errorHost = document.getElementById('list-error');
       errorHost.innerHTML = '';

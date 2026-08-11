@@ -431,6 +431,10 @@ async function openBookingModal(prefill) {
               </select>
             </div>
             <div class="field">
+              <label>開單日期</label>
+              <input type="date" id="f-order-date" value="${state.date}" />
+            </div>
+            <div class="field">
               <label>執行人員 *</label>
               <select id="f-therapist" required>
                 <option value="">請選擇</option>
@@ -708,6 +712,7 @@ async function openBookingModal(prefill) {
       patientName: resolvedPatientId ? undefined : patientInput,
       patientPhone: document.getElementById('f-phone').value.trim(),
       doctorId: document.getElementById('f-doctor').value || null,
+      orderDate: document.getElementById('f-order-date').value || undefined,
       therapistId: document.getElementById('f-therapist').value,
       treatmentTypeId: state.activeTreatmentTypeId,
       packageId: packageSelect && packageSelect.value ? packageSelect.value : undefined,
@@ -815,6 +820,7 @@ function openDetailModal(appt) {
             <tr><th>療程</th><td>${escapeHtml(appt.treatmentTypeName)}</td></tr>
             <tr><th>執行人員</th><td>${editingPersonnel ? `<select id="edit-therapist">${therapistOptions()}</select>` : escapeHtml(appt.therapistName)}</td></tr>
             <tr><th>開單醫師</th><td>${editingPersonnel ? `<select id="edit-doctor">${doctorOptions()}</select>` : escapeHtml(appt.doctorName) || '-'}</td></tr>
+            <tr><th>開單日期</th><td>${editingPersonnel ? `<input type="date" id="edit-order-date" value="${appt.orderDate || appt.date}" />` : (appt.orderDate || appt.date)}</td></tr>
             <tr><th>日期時間</th><td>${appt.date} ${appt.startTime} - ${appt.endTime}</td></tr>
             <tr><th>金額</th><td>${fmtMoney(appt.price)}${appt.packageId ? ` <span class="badge COMPLETED">${escapeHtml(appt.packageLabel)}扣抵</span>` : ''}</td></tr>
             <tr><th>報到時間</th><td>${fmtDateTime(appt.checkInAt)}</td></tr>
@@ -828,7 +834,7 @@ function openDetailModal(appt) {
               editingPersonnel
                 ? `<button type="button" class="btn secondary" id="btn-cancel-edit">取消</button>
                    <button type="button" class="btn" id="btn-save-personnel">儲存變更</button>`
-                : `<button type="button" class="btn secondary" id="btn-edit-personnel">編輯執行人員/醫師</button>
+                : `<button type="button" class="btn secondary" id="btn-edit-personnel">編輯執行人員/醫師/開單日期</button>
                    ${canNoShow ? '<button type="button" class="btn secondary" id="btn-noshow">標記未到</button>' : ''}
                    ${canCancel ? '<button type="button" class="btn danger" id="btn-cancel">取消預約</button>' : ''}
                    ${canCheckIn ? '<button type="button" class="btn warning" id="btn-checkin">✓ 報到成功</button>' : ''}
@@ -853,8 +859,9 @@ function openDetailModal(appt) {
       document.getElementById('btn-save-personnel').addEventListener('click', async () => {
         const therapistId = document.getElementById('edit-therapist').value;
         const doctorId = document.getElementById('edit-doctor').value;
+        const orderDate = document.getElementById('edit-order-date').value;
         try {
-          await api(`/appointments/${appt.id}`, { method: 'PATCH', body: JSON.stringify({ therapistId, doctorId }) });
+          await api(`/appointments/${appt.id}`, { method: 'PATCH', body: JSON.stringify({ therapistId, doctorId, orderDate }) });
           closeModal();
           await loadAndRender();
         } catch (err) {

@@ -56,6 +56,7 @@ function buildMonthlyReport(db, year, month) {
       return {
         date: a.date,
         startTime: a.startTime,
+        orderDate: a.orderDate || a.date,
         patientName: patient ? patient.name : '',
         treatmentTypeName: tt ? tt.name : '',
         therapistName: therapist ? therapist.name : '',
@@ -119,10 +120,10 @@ router.get('/monthly/export.csv', requireAuth, (req, res) => {
   const report = buildMonthlyReport(db, year, month);
 
   const rows = [];
-  rows.push(['日期', '時間', '患者', '療程項目', '執行人員', '開單醫師', '金額', '計費方式']);
+  rows.push(['日期', '時間', '開單日期', '患者', '療程項目', '執行人員', '開單醫師', '金額', '計費方式']);
   for (const d of report.detail) {
     rows.push([
-      d.date, d.startTime, d.patientName, d.treatmentTypeName, d.therapistName, d.doctorName, d.price,
+      d.date, d.startTime, d.orderDate, d.patientName, d.treatmentTypeName, d.therapistName, d.doctorName, d.price,
       d.isPackageSession ? '療程包' : '單次收費',
     ]);
   }

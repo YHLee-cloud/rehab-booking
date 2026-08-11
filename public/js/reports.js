@@ -72,12 +72,12 @@ async function load() {
 
   const detailBody = document.getElementById('detail-body');
   if (report.detail.length === 0) {
-    detailBody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#94a3b8;padding:20px;">此月份尚無完成治療紀錄</td></tr>`;
+    detailBody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#94a3b8;padding:20px;">此月份尚無完成治療紀錄</td></tr>`;
   } else {
     detailBody.innerHTML = report.detail
       .map(
         (d) => `<tr>
-          <td>${d.date}</td><td>${d.startTime}</td><td>${escapeHtml(d.patientName)}</td>
+          <td>${d.date}</td><td>${d.startTime}</td><td>${d.orderDate}</td><td>${escapeHtml(d.patientName)}</td>
           <td>${escapeHtml(d.treatmentTypeName)}</td><td>${escapeHtml(d.therapistName)}</td>
           <td>${escapeHtml(d.doctorName)}</td><td>${fmtMoney(d.price)}</td>
         </tr>`

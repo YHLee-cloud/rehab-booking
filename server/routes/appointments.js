@@ -70,7 +70,7 @@ router.get('/', requireAuth, (req, res) => {
 // POST /api/appointments
 router.post('/', requireAuth, (req, res) => {
   const db = load();
-  const { patientId, patientName, patientPhone, doctorId, treatmentTypeId, therapistId, date, startTime, note, firstTrial, eras, slotIndex, packageId } =
+  const { patientId, patientName, patientPhone, doctorId, treatmentTypeId, therapistId, date, startTime, note, firstTrial, eras, slotIndex, packageId, orderDate } =
     req.body || {};
 
   if (!treatmentTypeId || !therapistId || !date || !startTime) {
@@ -187,6 +187,8 @@ router.post('/', requireAuth, (req, res) => {
     date,
     startTime,
     endTime,
+    // 開單日期：給業績報表統計用，跟實際治療日期是分開的兩件事，沒填就預設用治療日期
+    orderDate: orderDate || date,
     // 療程包的每次金額用購買當下分攤的單價，這樣個人業績報表仍能正確反映實際服務量
     price: usedPackage ? unitPriceOf(usedPackage) : eras ? 250 : firstTrial ? 1000 : treatmentType.price,
     isFirstTrial: !!firstTrial,
@@ -215,7 +217,7 @@ router.patch('/:id', requireAuth, (req, res) => {
   const appt = db.appointments.find((a) => a.id === req.params.id);
   if (!appt) return res.status(404).json({ error: '找不到預約' });
 
-  const { therapistId, date, startTime, note, doctorId } = req.body || {};
+  const { therapistId, date, startTime, note, doctorId, orderDate } = req.body || {};
   const treatmentType = db.treatmentTypes.find((t) => t.id === appt.treatmentTypeId);
   const newTherapistId = therapistId || appt.therapistId;
   const newDate = date || appt.date;
@@ -244,6 +246,7 @@ router.patch('/:id', requireAuth, (req, res) => {
   appt.endTime = newEndTime;
   if (doctorId !== undefined) appt.doctorId = doctorId || null;
   if (note !== undefined) appt.note = note;
+  if (orderDate !== undefined) appt.orderDate = orderDate || appt.date;
   save();
   res.json(enrich(db, appt));
 });
